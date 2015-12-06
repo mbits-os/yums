@@ -1,0 +1,41 @@
+#pragma once
+
+#cmakedefine TS_FILESYSTEM_FOUND
+
+#ifdef TS_FILESYSTEM_FOUND
+#	define HAVE_TS_FILESYSTEM 1
+#else
+#	define HAVE_TS_FILESYSTEM 0
+#endif
+
+#if HAVE_TS_FILESYSTEM
+#	include <experimental/filesystem>
+#else // !HAVE_TS_FILESYSTEM
+#	include <boost/filesystem.hpp>
+#endif // HAVE_TS_FILESYSTEM
+
+namespace fs {
+
+#if HAVE_TS_FILESYSTEM
+using namespace std::experimental::filesystem;
+using std::error_code;
+#else // !HAVE(TS_FILESYSTEM)
+using namespace boost::filesystem;
+using boost::system::error_code;
+#endif // HAVE_TS_FILESYSTEM
+FILE* fopen(const path& file, char const* mode);
+}
+
+#if !HAVE_TS_FILESYSTEM
+namespace boost { namespace filesystem {
+inline directory_iterator begin(const directory_iterator& iter)
+{
+	return iter;
+}
+
+inline directory_iterator end(const directory_iterator&)
+{
+	return fs::directory_iterator { };
+}
+}}
+#endif
